@@ -1,0 +1,2 @@
+# ComfyUI Prompt Tracker Node
+# 无额外依赖，使用Python标准库
