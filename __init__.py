@@ -142,8 +142,6 @@ class PromptTrackerUpload:
             "optional": {
                 "negative_prompt": ("STRING", {"multiline": True, "placeholder": "负面提示词"}),
                 "model_name": ("STRING", {"default": "", "multiline": False, "placeholder": "模型名称"}),
-                "imgbed_url": ("STRING", {"default": "https://image.6677811.xyz", "multiline": False}),
-                "imgbed_auth": ("STRING", {"default": "", "multiline": False, "placeholder": "图床认证码"}),
             },
         }
     
@@ -153,7 +151,7 @@ class PromptTrackerUpload:
     CATEGORY = "Prompt Tracker"
     OUTPUT_NODE = True
     
-    def upload(self, title, positive_prompt, negative_prompt="", model_name="", imgbed_url="", imgbed_auth=""):
+    def upload(self, title, positive_prompt, negative_prompt="", model_name=""):
         try:
             result = create_prompt(
                 title=title,
@@ -165,6 +163,82 @@ class PromptTrackerUpload:
             return (f"上传成功! ID: {prompt_id}", str(prompt_id))
         except Exception as e:
             return (f"上传失败: {str(e)}", "-1")
+
+
+class PromptTrackerUploadWithImage:
+    """上传提示词和图片到Prompt Tracker API"""
+    
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "title": ("STRING", {"default": "ComfyUI生成", "multiline": False}),
+                "positive_prompt": ("STRING", {"multiline": True, "placeholder": "正向提示词"}),
+                "image": ("IMAGE",),
+            },
+            "optional": {
+                "negative_prompt": ("STRING", {"multiline": True, "placeholder": "负面提示词"}),
+                "model_name": ("STRING", {"default": "", "multiline": False, "placeholder": "模型名称"}),
+                "imgbed_url": ("STRING", {"default": "https://image.6677811.xyz", "multiline": False}),
+                "imgbed_auth": ("STRING", {"default": "", "multiline": False, "placeholder": "图床认证码"}),
+            },
+            "hidden": {
+                "unique_id": "UNIQUE_ID",
+            },
+        }
+    
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("status", "prompt_id", "image_url")
+    FUNCTION = "upload"
+    CATEGORY = "Prompt Tracker"
+    OUTPUT_NODE = True
+    
+    def upload(self, title, positive_prompt, image, negative_prompt="", model_name="", imgbed_url="https://image.6677811.xyz", imgbed_auth="", unique_id=""):
+        image_urls = []
+        
+        # 上传图片到图床
+        if image is not None and imgbed_url:
+            try:
+                import tempfile
+                import numpy as np
+                from PIL import Image as PILImage
+                
+                # 保存临时图片
+                temp_dir = tempfile.gettempdir()
+                temp_path = os.path.join(temp_dir, f"prompt_tracker_{unique_id}.png")
+                
+                # ComfyUI图片格式: [batch, height, width, channels]
+                img_array = image[0].cpu().numpy()
+                img_array = (img_array * 255).astype(np.uint8)
+                pil_image = PILImage.fromarray(img_array)
+                pil_image.save(temp_path)
+                
+                # 上传到图床
+                result = upload_to_imgbed(temp_path, imgbed_url, imgbed_auth)
+                if result:
+                    image_urls.append(result)
+                
+                # 清理临时文件
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                    
+            except Exception as e:
+                return (f"图片上传失败: {str(e)}", "-1", "")
+        
+        # 上传提示词到API
+        try:
+            result = create_prompt(
+                title=title,
+                prompt_text=positive_prompt,
+                negative_prompt=negative_prompt,
+                model_name=model_name,
+                images=image_urls
+            )
+            prompt_id = result.get("id", -1)
+            image_url = image_urls[0] if image_urls else ""
+            return (f"上传成功! ID: {prompt_id}", str(prompt_id), image_url)
+        except Exception as e:
+            return (f"上传失败: {str(e)}", "-1", "")
 
 
 class PromptTrackerDownload:
@@ -331,6 +405,7 @@ class PromptInput:
 # 节点映射
 NODE_CLASS_MAPPINGS = {
     "PromptTrackerUpload": PromptTrackerUpload,
+    "PromptTrackerUploadWithImage": PromptTrackerUploadWithImage,
     "PromptTrackerDownload": PromptTrackerDownload,
     "PromptTrackerSelect": PromptTrackerSelect,
     "PromptTrackerList": PromptTrackerList,
@@ -339,6 +414,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "PromptTrackerUpload": "Prompt Tracker 上传",
+    "PromptTrackerUploadWithImage": "Prompt Tracker 上传(含图片)",
     "PromptTrackerDownload": "Prompt Tracker 下载",
     "PromptTrackerSelect": "Prompt Tracker 选择",
     "PromptTrackerList": "Prompt Tracker 列表",
@@ -346,6 +422,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 print("\033[92m[Prompt Tracker] 节点加载成功!\033[0m")
-print("\033[92m[Prompt Tracker] 可用节点: Prompt Tracker 上传, Prompt Tracker 下载, Prompt Tracker 选择, Prompt Tracker 列表\033[0m")
+print("\033[92m[Prompt Tracker] 可用节点: Prompt Tracker 上传, Prompt Tracker 上传(含图片), Prompt Tracker 下载, Prompt Tracker 选择, Prompt Tracker 列表, Prompt Tracker 输入\033[0m")
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
