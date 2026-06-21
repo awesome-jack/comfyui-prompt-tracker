@@ -402,6 +402,29 @@ class PromptInput:
         return (text,)
 
 
+class CLIPTextEncodeWithOutput:
+    """CLIP文本编码（带STRING输出）- 可连接Prompt Tracker"""
+    
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"multiline": True, "dynamicPrompts": True, "placeholder": "输入提示词"}),
+                "clip": ("CLIP", ),
+            }
+        }
+    
+    RETURN_TYPES = ("CONDITIONING", "STRING")
+    RETURN_NAMES = ("CONDITIONING", "text")
+    FUNCTION = "encode"
+    CATEGORY = "conditioning"
+    
+    def encode(self, clip, text):
+        tokens = clip.tokenize(text)
+        cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
+        return ([[cond, {"pooled_output": pooled}]], text)
+
+
 # 节点映射
 NODE_CLASS_MAPPINGS = {
     "PromptTrackerUpload": PromptTrackerUpload,
@@ -410,6 +433,7 @@ NODE_CLASS_MAPPINGS = {
     "PromptTrackerSelect": PromptTrackerSelect,
     "PromptTrackerList": PromptTrackerList,
     "PromptInput": PromptInput,
+    "CLIPTextEncodeWithOutput": CLIPTextEncodeWithOutput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -419,9 +443,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "PromptTrackerSelect": "Prompt Tracker 选择",
     "PromptTrackerList": "Prompt Tracker 列表",
     "PromptInput": "Prompt Tracker 输入",
+    "CLIPTextEncodeWithOutput": "CLIP Text Encode (带输出)",
 }
 
 print("\033[92m[Prompt Tracker] 节点加载成功!\033[0m")
-print("\033[92m[Prompt Tracker] 可用节点: Prompt Tracker 上传, Prompt Tracker 上传(含图片), Prompt Tracker 下载, Prompt Tracker 选择, Prompt Tracker 列表, Prompt Tracker 输入\033[0m")
+print("\033[92m[Prompt Tracker] 可用节点: CLIP Text Encode (带输出), Prompt Tracker 上传, Prompt Tracker 上传(含图片), Prompt Tracker 下载, Prompt Tracker 选择, Prompt Tracker 列表, Prompt Tracker 输入\033[0m")
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
