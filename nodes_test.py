@@ -1,8 +1,7 @@
 """
-ComfyUI Prompt Tracker Node
+ComfyUI Prompt Tracker Node - Simple Test Version
 """
 
-# 测试版本 - 直接定义节点，不依赖外部模块
 class PromptTrackerTest:
     """测试节点"""
     
@@ -33,6 +32,3 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 print("\033[92m[Prompt Tracker] 测试节点加载成功!\033[0m")
-print("\033[92m[Prompt Tracker] 可用节点: Prompt Tracker 测试\033[0m")
-
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
