@@ -10,7 +10,7 @@ import urllib.error
 import urllib.parse
 
 # API配置
-API_BASE = "https://prompt-api.6677811.xyz"
+API_BASE = "https://prompt-tracker-api.3313844974.workers.dev"
 
 
 def api_request(method, path, data=None):
