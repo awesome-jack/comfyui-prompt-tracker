@@ -147,7 +147,7 @@ class PromptTrackerUpload:
             },
         }
     
-    RETURN_TYPES = ("STRING", "INT")
+    RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("status", "prompt_id")
     FUNCTION = "upload"
     CATEGORY = "Prompt Tracker"
@@ -162,9 +162,9 @@ class PromptTrackerUpload:
                 model_name=model_name
             )
             prompt_id = result.get("id", -1)
-            return (f"上传成功! ID: {prompt_id}", prompt_id)
+            return (f"上传成功! ID: {prompt_id}", str(prompt_id))
         except Exception as e:
-            return (f"上传失败: {str(e)}", -1)
+            return (f"上传失败: {str(e)}", "-1")
 
 
 class PromptTrackerDownload:
