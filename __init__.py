@@ -308,12 +308,33 @@ class PromptTrackerList:
             return (f"获取列表失败: {str(e)}",)
 
 
+class PromptInput:
+    """提示词输入节点 - 用于连接多个节点"""
+    
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"multiline": True, "default": "", "placeholder": "输入提示词"}),
+            },
+        }
+    
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "process"
+    CATEGORY = "Prompt Tracker"
+    
+    def process(self, text):
+        return (text,)
+
+
 # 节点映射
 NODE_CLASS_MAPPINGS = {
     "PromptTrackerUpload": PromptTrackerUpload,
     "PromptTrackerDownload": PromptTrackerDownload,
     "PromptTrackerSelect": PromptTrackerSelect,
     "PromptTrackerList": PromptTrackerList,
+    "PromptInput": PromptInput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -321,6 +342,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "PromptTrackerDownload": "Prompt Tracker 下载",
     "PromptTrackerSelect": "Prompt Tracker 选择",
     "PromptTrackerList": "Prompt Tracker 列表",
+    "PromptInput": "Prompt Tracker 输入",
 }
 
 print("\033[92m[Prompt Tracker] 节点加载成功!\033[0m")
